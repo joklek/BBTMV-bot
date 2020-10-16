@@ -149,8 +149,8 @@ func (p *Post) message(ID int64) string {
 
 func (p *Post) debugMessage(rowID int64) string {
 	return fmt.Sprintf(
-		"\tID:%d Link:%d Tel:%s Desc:%d Addr:%d Heat:%d Fl:%d FlTot:%d Area:%d Price:%d Room:%d Year:%d WithFees:%t",
-		rowID, len(p.Link), p.Phone, len(p.Description), len(p.Address), len(p.Heating), p.Floor, p.FloorTotal, p.Area, p.Price, p.Rooms, p.Year, p.WithFee,
+		"\tID:%d Tel:%s Desc:%d Addr:%d Heat:%d Fl:%d FlTot:%d Area:%d Price:%d Room:%d Year:%d WithFees:%t Link:%s",
+		rowID, p.Phone, len(p.Description), len(p.Address), len(p.Heating), p.Floor, p.FloorTotal, p.Area, p.Price, p.Rooms, p.Year, p.WithFee, p.Link,
 	)
 }
 
