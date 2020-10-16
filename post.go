@@ -236,7 +236,7 @@ func (p Post) isExcluded() (excluded bool, reason string) {
 
 // Handle handles post (e.g. sends to subscribers).
 func (p *Post) Handle() {
-	p.Phone = strings.TrimSpace(p.Phone)
+	p.Phone = cleanupPhoneNumber(p.Phone)
 	p.Description = strings.TrimSpace(p.Description)
 	p.Address = strings.TrimSpace(strings.Title(p.Address))
 	p.Heating = strings.TrimSpace(p.Heating)
@@ -258,4 +258,20 @@ func (p *Post) Handle() {
 
 	// Debug info
 	log.Println(p.debugMessage(rowID))
+}
+
+func cleanupPhoneNumber(rawNumber string) string {
+	number := strings.ReplaceAll(rawNumber, " ", "")
+
+	if strings.HasPrefix(number, "00") {
+		number = strings.Replace(number, "00", "", 1)
+	}
+
+	if strings.HasPrefix(number, "370") {
+		number = "+" + number
+	} else if strings.HasPrefix(number, "86") {
+		number = strings.Replace(number, "86", "+3706", 1)
+	}
+
+	return strings.TrimSpace(number)
 }

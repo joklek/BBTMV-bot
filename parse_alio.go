@@ -41,9 +41,9 @@ func parseAlio() {
 
 		// ------------------------------------------------------------
 
+		tmp := ""
 		// Extract phone:
-		tmp := postDoc.Find("#phone_val_value").Text()
-		p.Phone = strings.ReplaceAll(tmp, " ", "")
+		p.Phone = postDoc.Find("#phone_val_value").Text()
 
 		// Extract description:
 		p.Description = postDoc.Find("#adv_description_b > .a_line_val").Text()

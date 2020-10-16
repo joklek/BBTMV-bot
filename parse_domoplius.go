@@ -135,17 +135,10 @@ func parseDomoplius() {
 
 func domopliusDecodeNumber(str string) string {
 
-	msgRaw, err := base64.StdEncoding.DecodeString(str[2:])
+	msg, err := base64.StdEncoding.DecodeString(str[2:])
 	if err != nil {
 		fmt.Printf("Error decoding string: %s ", err.Error())
 		return ""
 	}
-	msg := strings.ReplaceAll(string(msgRaw), " ", "")
-
-	// Replace 86 in the beginning to +3706
-	if strings.HasPrefix(msg, "86") {
-		return strings.Replace(msg, "86", "+3706", 1)
-	}
-
-	return msg
+	return string(msg)
 }

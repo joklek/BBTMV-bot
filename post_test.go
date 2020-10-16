@@ -315,3 +315,35 @@ func TestTestHasFee(t *testing.T) {
 		}
 	}
 }
+
+type DataAssertion struct {
+	Provided string
+	Expected string
+}
+
+var PhoneNumberData = []DataAssertion{
+	{
+		Provided: "+370 666 66666",
+		Expected: "+37066666666",
+	},
+	{
+		Provided: "862222222",
+		Expected: "+37062222222",
+	},
+	{
+		Provided: "003706 22 22222",
+		Expected: "+37062222222",
+	},
+	{
+		Provided: "370 622 22222",
+		Expected: "+37062222222",
+	},
+}
+
+func TestPhoneCleanup(t *testing.T) {
+	for _, v := range PhoneNumberData {
+		if res := cleanupPhoneNumber(v.Provided); res != v.Expected {
+			t.Errorf("Result is incorrect, got: '%s', want: '%s'.", res, v.Expected)
+		}
+	}
+}

@@ -51,12 +51,10 @@ func parseRinka() {
 
 		// Extract phone:
 		tmp, exists = postDoc.Find("div.messageBlock.hidden-xs.hidden-sm button").Attr("data-number")
-		if exists {
-			tmp = "+" + tmp
-		} else {
+		if !exists {
 			tmp = ""
 		}
-		p.Phone = strings.ReplaceAll(tmp, " ", "")
+		p.Phone = tmp
 
 		// Extract description:
 		p.Description = postDoc.Find("[itemprop=\"description\"]").Text()

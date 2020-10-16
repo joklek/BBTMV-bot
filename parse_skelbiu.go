@@ -44,8 +44,7 @@ func parseSkelbiu() {
 		var tmp string
 
 		// Extract phone:
-		tmp = postDoc.Find("div.phone-button > div.primary").Text()
-		p.Phone = strings.ReplaceAll(tmp, " ", "")
+		p.Phone = postDoc.Find("div.phone-button > div.primary").Text()
 
 		// Extract description:
 		p.Description = postDoc.Find("div[itemprop=\"description\"]").Text()

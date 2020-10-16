@@ -12,11 +12,11 @@ type DomopliusData struct {
 var DomopliusTestData = []DomopliusData{
 	{
 		Provided: "zzKzM3MCA2NjYgNjY2NjY=",
-		Expected: "+37066666666",
+		Expected: "+370 666 66666",
 	},
 	{
 		Provided: "asODYyMjIyMjIy",
-		Expected: "+37062222222",
+		Expected: "862222222",
 	},
 }
 
