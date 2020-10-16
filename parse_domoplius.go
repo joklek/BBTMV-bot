@@ -30,7 +30,7 @@ func parseDomoplius() {
 		if !ok {
 			return
 		}
-		p.Link = "https://m.domoplius.lt/skelbimai/-" + strings.ReplaceAll(upstreamID, "ann_", "") + ".html" // https://m.domoplius.lt/skelbimai/-5806213.html
+		p.Link = "https://domoplius.lt/skelbimai/-" + strings.ReplaceAll(upstreamID, "ann_", "") + ".html" // https://m.domoplius.lt/skelbimai/-5806213.html
 
 		// Skip if already in database:
 		if p.InDatabase() {

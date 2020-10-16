@@ -25,7 +25,7 @@ func parseAruodas() {
 		if !ok {
 			return
 		}
-		p.Link = "https://m.aruodas.lt/" + strings.ReplaceAll(upstreamID, "loadObject", "") // https://m.aruodas.lt/4-919937
+		p.Link = "https://aruodas.lt/" + strings.ReplaceAll(upstreamID, "loadObject", "") // https://m.aruodas.lt/4-919937
 
 		// Skip if already in database:
 		if p.InDatabase() {
