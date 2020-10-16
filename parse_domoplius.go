@@ -142,11 +142,6 @@ func domopliusDecodeNumber(str string) string {
 	}
 	msg := strings.ReplaceAll(string(msgRaw), " ", "")
 
-	// Replace 00 in the beginning to +
-	if strings.HasPrefix(msg, "00") {
-		return strings.Replace(msg, "00", "+", 1)
-	}
-
 	// Replace 86 in the beginning to +3706
 	if strings.HasPrefix(msg, "86") {
 		return strings.Replace(msg, "86", "+3706", 1)
