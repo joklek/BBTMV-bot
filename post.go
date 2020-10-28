@@ -244,7 +244,7 @@ func (p *Post) Handle() {
 	// Check if we need to exclude this post
 	if excluded, reason := p.isExcluded(); excluded {
 		rowID := p.toDatabase(true, reason)
-		log.Println("// Excluded ", rowID, "|", reason)
+		log.Println("// Excluded ", rowID, "|", reason, "|", p.Link)
 		return
 	}
 

@@ -2,11 +2,14 @@ package main
 
 import (
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+var regexAlioPrice = regexp.MustCompile(`[^\d]\d{4}\s*m\.`)
 
 func parseAlio() {
 	// Download page
@@ -77,7 +80,7 @@ func parseAlio() {
 		}
 
 		// Extract area:
-		el = postDoc.Find(".data_moreinfo_b:contains(\"Buto plotas\")")
+		el = postDoc.Find(".data_moreinfo_b:contains(\"Būsto plotas\")")
 		if el.Length() != 0 {
 			tmp = el.Find(".a_line_val").Text()
 			tmp = strings.TrimSpace(tmp)
@@ -113,6 +116,11 @@ func parseAlio() {
 			tmp = strings.TrimSpace(tmp)
 			tmp = strings.Split(tmp, " ")[0]
 			p.Year, _ = strconv.Atoi(tmp)
+		} else {
+			yearMatch := regexAlioPrice.FindStringSubmatch(p.Description)
+			if len(yearMatch) > 0 {
+				p.Year, _ = strconv.Atoi(strings.ReplaceAll(yearMatch[0], "m.", ""))
+			}
 		}
 
 		go p.Handle()

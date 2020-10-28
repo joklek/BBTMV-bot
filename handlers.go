@@ -59,7 +59,7 @@ func handleUserStatusChange(m *tb.Message, stateStatus StatusChangeType) {
 	sendTo(m.Sender, message+"\n\n"+ActiveSettingsText)
 }
 
-var validConfig = regexp.MustCompile(`^/config (\d{1,5}) (\d{1,5}) (\d{1,2}) (\d{1,2}) (\d{4}) (\d{1,3}) (taip|ne)$`)
+var validConfig = regexp.MustCompile(`^/config (\d{1,7}) (\d{1,7}) (\d{1,2}) (\d{1,2}) (\d{4}) (\d{1,3}) (taip|ne)$`)
 
 func handleCommandConfig(m *tb.Message) {
 	msg := strings.ToLower(strings.TrimSpace(m.Text))
@@ -87,7 +87,7 @@ func handleCommandConfig(m *tb.Message) {
 	showWithFee := strings.ToLower(extracted[7]) == "taip"
 
 	// Values check
-	priceCorrect := priceFrom >= 0 || priceTo <= 100000 && priceTo >= priceFrom
+	priceCorrect := priceFrom >= 0 || priceTo <= 1000000 && priceTo >= priceFrom
 	roomsCorrect := roomsFrom >= 0 || roomsTo <= 100 && roomsTo >= roomsFrom
 	yearCorrect := yearFrom <= time.Now().Year()
 	minFloorCorrect := minFloor >= 0 && minFloor <= 100

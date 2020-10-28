@@ -52,9 +52,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// Start web server for Influx line protocol stats
-	go initInflux()
-
 	// Connect to Telegram bot
 	poller := &tb.LongPoller{Timeout: 15 * time.Second}
 	middlewarePoller := tb.NewMiddlewarePoller(poller, func(upd *tb.Update) bool {
@@ -90,9 +87,9 @@ func main() {
 			go parseDomoplius()
 			go parseAlio()
 			go parseRinka()
-			//go parseKampas()
-			go parseNuomininkai()
-			minimumWaitSeconds := 3 * 60
+			go parseKampas()
+			//go parseNuomininkai()
+			minimumWaitSeconds := 10 * 60
 			maxDelaySeconds := 3 * 60
 			randomDelaySeconds := rand.Intn(maxDelaySeconds)
 			time.Sleep(time.Duration(minimumWaitSeconds+randomDelaySeconds) * time.Second)
@@ -140,7 +137,7 @@ func sendTo(sender *tb.User, msg string) {
 		startTime = time.Now()
 		bot.Send(sender, msg, &tb.SendOptions{
 			ParseMode:             "Markdown",
-			DisableWebPagePreview: true,
+			DisableWebPagePreview: false,
 		})
 		elapsedTime = time.Since(startTime)
 

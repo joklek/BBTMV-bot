@@ -88,9 +88,18 @@ func parseAruodas() {
 		}
 
 		// Extract price:
-		el = postDoc.Find("dt:contains(\"Kaina mėn.\")")
+		tmp = ""
+		el = postDoc.Find("span.price-eur")
 		if el.Length() != 0 {
-			tmp = el.Next().Text()
+			tmp = el.First().Text()
+		}
+		if len(tmp) == 0 {
+			el = postDoc.Find("span.main-price")
+			if el.Length() != 0 {
+				tmp = el.First().Text()
+			}
+		}
+		if len(tmp) != 0 {
 			tmp = strings.TrimSpace(tmp)
 			tmp = strings.ReplaceAll(tmp, " ", "")
 			tmp = strings.ReplaceAll(tmp, "€", "")
