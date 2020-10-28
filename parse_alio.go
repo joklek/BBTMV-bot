@@ -82,7 +82,8 @@ func parseAlio() {
 			tmp = el.Find(".a_line_val").Text()
 			tmp = strings.TrimSpace(tmp)
 			tmp = strings.Split(tmp, " ")[0]
-			p.Area, _ = strconv.Atoi(tmp)
+			var tmpArea, _ = strconv.ParseFloat(tmp, 32) // Area is represented as a float and Atoi does not work on it
+			p.Area = int(tmpArea)
 		}
 
 		// Extract price:
