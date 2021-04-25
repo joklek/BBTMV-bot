@@ -140,7 +140,7 @@ func sendTo(sender *tb.User, msg string) {
 		startTime = time.Now()
 		bot.Send(sender, msg, &tb.SendOptions{
 			ParseMode:             "Markdown",
-			DisableWebPagePreview: true,
+			DisableWebPagePreview: false,
 		})
 		elapsedTime = time.Since(startTime)
 
