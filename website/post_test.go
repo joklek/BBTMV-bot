@@ -273,11 +273,11 @@ func TestHasFee(t *testing.T) {
 	for _, v := range PostTestData {
 		p.Description = v.Provided
 		if v.Expected == true {
-			if excl := p.IsExcludable(); excl != v.Expected {
+			if excl := p.IsWithFee(); excl != v.Expected {
 				t.Errorf("Result was incorrect, '%s' expected '%t', got: '%t'.", strings.TrimSpace(v.Provided), v.Expected, excl)
 			}
 		} else {
-			if excl := p.IsExcludable(); excl != v.Expected {
+			if excl := p.IsWithFee(); excl != v.Expected {
 				t.Errorf("Result was incorrect, '%s' expected '%t', got: '%t'.", strings.TrimSpace(v.Provided), v.Expected, excl)
 			}
 		}
@@ -291,6 +291,38 @@ func TestTestHasFee(t *testing.T) {
 			if k != kk && strings.EqualFold(v.Provided, vv.Provided) {
 				t.Errorf("Duplicating test data in rows %d and %d: '%s'.", k, kk, v.Provided)
 			}
+		}
+	}
+}
+
+type DataAssertion struct {
+	Provided string
+	Expected string
+}
+
+var PhoneNumberData = []DataAssertion{
+	{
+		Provided: "+370 666 66666",
+		Expected: "+37066666666",
+	},
+	{
+		Provided: "862222222",
+		Expected: "+37062222222",
+	},
+	{
+		Provided: "003706 22 22222",
+		Expected: "+37062222222",
+	},
+	{
+		Provided: "370 622 22222",
+		Expected: "+37062222222",
+	},
+}
+
+func TestPhoneCleanup(t *testing.T) {
+	for _, v := range PhoneNumberData {
+		if res := cleanupPhoneNumber(v.Provided); res != v.Expected {
+			t.Errorf("Result is incorrect, got: '%s', want: '%s'.", res, v.Expected)
 		}
 	}
 }

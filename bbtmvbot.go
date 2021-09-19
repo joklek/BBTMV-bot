@@ -4,6 +4,7 @@ import (
 	"bbtmvbot/config"
 	"bbtmvbot/database"
 	"bbtmvbot/website"
+	"fmt"
 	"log"
 	"time"
 
@@ -46,7 +47,7 @@ func Start(c *config.Config, dbPath *string) {
 	location, _ := time.LoadLocation("Europe/Vilnius")
 	s := gocron.NewScheduler(location)
 	s.Every("3m").Do(refreshWebsites) // Retrieve new posts, send to users
-	s.Every("24h").Do(cleanup)        // Cleanup (remove posts that are not seen in the last 30 days)
+	//s.Every("24h").Do(cleanup)        // Cleanup (remove posts that are not seen in the last 30 days)
 
 	// Start cronjob and block execution
 	s.StartBlocking()
@@ -61,7 +62,6 @@ func refreshWebsites() {
 				go processPost(post)
 			}
 		}(title, site)
-
 	}
 }
 
@@ -73,10 +73,15 @@ func processPost(post *website.Post) {
 
 	insertedPostID := db.AddPost(post.Link)
 
-	telegramIDs := db.GetInterestedTelegramIDs(post.Price, post.Rooms, post.Year)
+	telegramIDs := db.GetInterestedTelegramIDs(post.Price, post.Rooms, post.Year, post.Floor, post.IsWithFee())
 	for _, telegramID := range telegramIDs {
 		sendTelegram(telegramID, post.FormatTelegramMessage(insertedPostID))
 	}
+
+	log.Println(fmt.Sprintf(
+		"\tID:%d Tel:%s Desc:%d Addr:%d Heat:%d Fl:%d FlTot:%d Area:%d Price:%d Room:%d Year:%d WithFees:%t Link:%s",
+		insertedPostID, post.Phone, len(post.Description), len(post.Address), len(post.Heating), post.Floor, post.FloorTotal, post.Area, post.Price, post.Rooms, post.Year, post.IsWithFee(), post.Link,
+	))
 }
 
 func cleanup() {

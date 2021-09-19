@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS "users" (
 	"rooms_from"	INTEGER NOT NULL DEFAULT 0,
 	"rooms_to"	INTEGER NOT NULL DEFAULT 0,
 	"year_from"	INTEGER NOT NULL DEFAULT 0,
+	"min_floor" INTEGER NOT NULL DEFAULT 0,
+	"show_with_fee" INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("telegram_id")
 );
 CREATE TABLE IF NOT EXISTS "posts" (
@@ -49,19 +51,24 @@ func Open(path string) (*Database, error) {
 }
 
 type User struct {
-	TelegramID int64
-	Enabled    bool
-	PriceFrom  int
-	PriceTo    int
-	RoomsFrom  int
-	RoomsTo    int
-	YearFrom   int
+	TelegramID   int64
+	Enabled      bool
+	PriceFrom    int
+	PriceTo      int
+	RoomsFrom    int
+	RoomsTo      int
+	YearFrom     int
+	MinFloor     int
+	ShowWithFees bool
 }
 
-func (d *Database) GetInterestedTelegramIDs(price, rooms, year int) []int64 {
+func (d *Database) GetInterestedTelegramIDs(price, rooms, year int, floor int, isWithFee bool) []int64 {
 	telegram_IDs := make([]int64, 0)
-	query := "SELECT telegram_id FROM users WHERE enabled=1 AND ? >= price_from AND ? <= price_to AND ? >= rooms_from AND ? <= rooms_to AND ? >= year_from"
-	rows, err := d.db.Query(query, price, price, rooms, rooms, year)
+	query := "SELECT telegram_id FROM users WHERE enabled=1 AND ? >= price_from AND ? <= price_to AND ? >= rooms_from AND ? <= rooms_to AND ? >= year_from AND min_floor <= ? "
+	if isWithFee {
+		query += "AND show_with_fee = 1"
+	}
+	rows, err := d.db.Query(query, price, price, rooms, rooms, year, floor)
 	if err != nil {
 		panic(err)
 	}
@@ -128,8 +135,8 @@ func (d *Database) DeleteOldPosts() {
 
 func (d *Database) GetUser(telegramID int64) *User {
 	var u User
-	query := "SELECT * FROM users WHERE telegram_id=? LIMIT 1"
-	err := d.db.QueryRow(query, telegramID).Scan(&u.TelegramID, &u.Enabled, &u.PriceFrom, &u.PriceTo, &u.RoomsFrom, &u.RoomsTo, &u.YearFrom)
+	query := "SELECT * FROM users WHERE telegram_id=?"
+	err := d.db.QueryRow(query, telegramID).Scan(&u.TelegramID, &u.Enabled, &u.PriceFrom, &u.PriceTo, &u.RoomsFrom, &u.RoomsTo, &u.YearFrom, &u.MinFloor, &u.ShowWithFees)
 	if err != nil {
 		panic(err)
 	}
@@ -137,8 +144,8 @@ func (d *Database) GetUser(telegramID int64) *User {
 }
 
 func (d *Database) UpdateUser(user *User) {
-	query := "UPDATE users SET enabled=1, price_from=?, price_to=?, rooms_from=?, rooms_to=?, year_from=? WHERE telegram_id=?"
-	_, err := d.db.Exec(query, user.PriceFrom, user.PriceTo, user.RoomsFrom, user.RoomsTo, user.YearFrom, user.TelegramID)
+	query := "UPDATE users SET enabled=1, price_from=?, price_to=?, rooms_from=?, rooms_to=?, year_from=?, min_floor=?, show_with_fee=? WHERE telegram_id=?"
+	_, err := d.db.Exec(query, user.PriceFrom, user.PriceTo, user.RoomsFrom, user.RoomsTo, user.YearFrom, user.MinFloor, user.ShowWithFees, user.TelegramID)
 	if err != nil {
 		panic(err)
 	}

@@ -35,7 +35,7 @@ func (obj *Aruodas) Retrieve(db *database.Database) []*website.Post {
 			log.Println("Post ID is not found in 'aruodas' website")
 			return
 		}
-		p.Link = "https://m.aruodas.lt/" + strings.ReplaceAll(upstreamID, "loadObject", "") // https://m.aruodas.lt/4-919937
+		p.Link = "https://aruodas.lt/" + strings.ReplaceAll(upstreamID, "loadObject", "") // https://aruodas.lt/4-919937
 
 		if db.InDatabase(p.Link) {
 			return
@@ -54,16 +54,27 @@ func (obj *Aruodas) Retrieve(db *database.Database) []*website.Post {
 		var tmp string
 
 		// Extract phone:
-		p.Phone = postDoc.Find("a[data-id=\"subtitlePhone1\"][data-type=\"phone\"]").First().Text()
+		tempPhone := postDoc.Find("span.phone_item_0").First().Text()
+		if tempPhone == "" {
+			tempPhone = postDoc.Find("div.phone").First().Text()
+		}
+		p.Phone = tempPhone
 
 		// Extract description:
-		p.Description = postDoc.Find("#advertInfoContainer > #collapsedTextBlock > #collapsedText").Text()
+		p.Description = postDoc.Find("#collapsedTextBlock > #collapsedText").Text()
 
 		// Extract address:
-		p.Address = postDoc.Find(".show-advert-container > .advert-info-header > h1").Text()
+		temp := postDoc.Find(".main-content > .obj-cont > h1").Text()
+		splitAddress := strings.Split(temp, ",")
+		el := postDoc.Find("dt:contains(\"Namo numeris\")")
+		if el.Length() != 0 {
+			p.Address = website.CompileAddressWithStreet(splitAddress[1], splitAddress[2], strings.TrimSpace(el.Next().Text()))
+		} else {
+			p.Address = website.CompileAddress(splitAddress[1], splitAddress[2])
+		}
 
 		// Extract heating:
-		el := postDoc.Find("dt:contains(\"Šildymas\")")
+		el = postDoc.Find("dt:contains(\"Šildymas\")")
 		if el.Length() != 0 {
 			p.Heating = el.Next().Text()
 		}

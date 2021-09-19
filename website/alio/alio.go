@@ -52,8 +52,7 @@ func (obj *Alio) Retrieve(db *database.Database) []*website.Post {
 		}
 
 		// Extract phone:
-		tmp := postDoc.Find("#phone_val_value").Text()
-		p.Phone = strings.ReplaceAll(tmp, " ", "")
+		p.Phone = postDoc.Find("#phone_val_value").Text()
 
 		// Extract description:
 		p.Description = postDoc.Find("#adv_description_b > .a_line_val").Text()
@@ -71,6 +70,7 @@ func (obj *Alio) Retrieve(db *database.Database) []*website.Post {
 		}
 
 		// Extract floor:
+		tmp := ""
 		el = postDoc.Find(".data_moreinfo_b:contains(\"Buto aukštas\")")
 		if el.Length() != 0 {
 			tmp = el.Find(".a_line_val").Text()
@@ -100,12 +100,12 @@ func (obj *Alio) Retrieve(db *database.Database) []*website.Post {
 			tmp = el.Find(".a_line_val").Text()
 			tmp = strings.TrimSpace(tmp)
 			tmp = strings.Split(tmp, " ")[0]
-			tmp = strings.Split(tmp, ".")[0]
-			p.Area, err = strconv.Atoi(tmp)
+			var tmpArea, err = strconv.ParseFloat(tmp, 32) // Area is represented as a float and Atoi does not work on it
 			if err != nil {
 				log.Println("failed to extract Area number from 'alio' post")
 				return
 			}
+			p.Area = int(tmpArea)
 		}
 
 		// Extract price:

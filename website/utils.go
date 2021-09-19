@@ -55,25 +55,17 @@ func GetResponse(link string) (*http.Response, error) {
 }
 
 func CompileAddress(district, street string) (address string) {
-	if district == "" {
-		address = "Vilnius"
-	} else if street == "" {
-		address = "Vilnius, " + district
-	} else {
-		address = "Vilnius, " + district + ", " + street
+	address = "Vilnius"
+	if district != "" {
+		address += ", " + district
+	}
+	if street != "" {
+		address += ", " + street
 	}
 	return
 }
 
 func CompileAddressWithStreet(district, street, houseNumber string) (address string) {
-	if district == "" {
-		address = "Vilnius"
-	} else if street == "" {
-		address = "Vilnius, " + district
-	} else if houseNumber == "" {
-		address = "Vilnius, " + district + ", " + street
-	} else {
-		address = "Vilnius, " + district + ", " + street + " " + houseNumber
-	}
+	address = CompileAddress(district, street+" "+houseNumber)
 	return
 }

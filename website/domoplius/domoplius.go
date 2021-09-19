@@ -3,6 +3,8 @@ package domoplius
 import (
 	"bbtmvbot/database"
 	"bbtmvbot/website"
+	"encoding/base64"
+	"fmt"
 	"log"
 	"regexp"
 	"strconv"
@@ -38,7 +40,7 @@ func (obj *Domoplius) Retrieve(db *database.Database) []*website.Post {
 			log.Println("Post ID is not found in 'domoplius' website")
 			return
 		}
-		p.Link = "https://m.domoplius.lt/skelbimai/-" + strings.ReplaceAll(upstreamID, "ann_", "") + ".html" // https://m.domoplius.lt/skelbimai/-5806213.html
+		p.Link = "https://domoplius.lt/skelbimai/-" + strings.ReplaceAll(upstreamID, "ann_", "") + ".html" // https://domoplius.lt/skelbimai/-5806213.html
 
 		if db.InDatabase(p.Link) {
 			return
@@ -55,19 +57,26 @@ func (obj *Domoplius) Retrieve(db *database.Database) []*website.Post {
 		}
 
 		// Extract phone:
-		tmp, err := postDoc.Find("#phone_button_4").Html()
-		if err == nil {
-			tmp = domopliusDecodeNumber(tmp)
-			p.Phone = strings.ReplaceAll(tmp, " ", "")
+		tmp, exists := postDoc.Find("#phone_button_4 > span").Attr("data-value")
+		if exists {
+			p.Phone = domopliusDecodeNumber(tmp)
 		}
 
 		// Extract description:
 		p.Description = postDoc.Find("div.container > div.group-comments").Text()
 
 		// Extract address:
-		tmp = postDoc.Find(".panel > .container > .container > h1").Text()
+		tmp = ""
+		postDoc.Find(".breadcrumb-item > a > span[itemprop=name]").Each(func(i int, selection *goquery.Selection) {
+			if i != 0 {
+				tmp += ", "
+			}
+			tmp += selection.Text()
+		})
 		if tmp != "" {
-			p.Address = strings.Split(tmp, "nuoma ")[1]
+			if tmp != "" {
+				p.Address = tmp
+			}
 		}
 
 		// Extract heating:
@@ -163,48 +172,14 @@ func (obj *Domoplius) Retrieve(db *database.Database) []*website.Post {
 	return posts
 }
 
-var reNumberMap = regexp.MustCompile(`(\w+)='([^']+)'`)
-var reNumerSeq = regexp.MustCompile(`document\.write\(([\w+]+)\);`)
-
 func domopliusDecodeNumber(str string) string {
-	// Create map:
-	arr := reNumberMap.FindAllStringSubmatch(str, -1)
-	mymap := make(map[string]string, len(arr))
-	for _, v := range arr {
-		mymap[v[1]] = v[2]
+	msg, err := base64.StdEncoding.DecodeString(str[2:])
+	if err != nil {
+		fmt.Printf("Error decoding string: %s ", err.Error())
+		return ""
 	}
 
-	// Create sequence:
-	arr = reNumerSeq.FindAllStringSubmatch(str, -1)
-	var seq string
-	for _, v := range arr {
-		seq += "+" + v[1]
-	}
-	seq = strings.TrimLeft(seq, "+")
-
-	// Split sequence into array:
-	splittedSeq := strings.Split(seq, "+")
-
-	// Build final string:
-	var msg string
-	for _, v := range splittedSeq {
-		msg += mymap[v]
-	}
-
-	// Remove spaces
-	msg = strings.ReplaceAll(msg, " ", "")
-
-	// Replace 00 in the beginning to +
-	if strings.HasPrefix(msg, "00") {
-		msg = strings.Replace(msg, "00", "+", 1)
-	}
-
-	// Replace 86 in the beginning to +3706
-	if strings.HasPrefix(msg, "86") {
-		msg = strings.Replace(msg, "86", "+3706", 1)
-	}
-
-	return msg
+	return string(msg)
 }
 
 func init() {

@@ -58,8 +58,12 @@ func (obj *Rinka) Retrieve(db *database.Database) []*website.Post {
 		var tmp string
 
 		// Extract phone:
-		tmp = postDoc.Find("#phone_val_value").Text()
-		p.Phone = strings.ReplaceAll(tmp, " ", "")
+		tmp, exists = postDoc.Find("div.messageBlock.hidden-xs.hidden-sm button").Attr("data-number")
+		if exists {
+			p.Phone = tmp
+		} else {
+			p.Phone = ""
+		}
 
 		// Extract description:
 		p.Description = postDoc.Find("[itemprop=\"description\"]").Text()

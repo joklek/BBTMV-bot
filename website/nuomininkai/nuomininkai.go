@@ -56,7 +56,7 @@ func (obj *Nuomininkai) Retrieve(db *database.Database) []*website.Post {
 		// Extract phone:
 		el := postDoc.Find("h4 > i.fa-mobile").Parent()
 		el.Find("i").Remove()
-		p.Phone = strings.ReplaceAll(el.Text(), " ", "")
+		p.Phone = el.Text()
 
 		// Extract description:
 		// Extracts together with details table, but we dont care since

@@ -21,7 +21,7 @@ func initTelegramHandlers() {
 }
 
 func handleCommandInfo(m *telebot.Message) {
-	sendTelegram(m.Chat.ID, "BBTMV - 'Butų Be Tarpininkavimo Mokesčio Vilniuje' is a project intended to help find flats for a rent in Vilnius, Lithuania. All you have to do is to set config using /config command and wait until bot sends you notifications.\n\n**Fun fact** - if you are couple and looking for a flat, then create group chat and add this bot into that group - enable settings and bot will send notifications to the same chat. :)")
+	sendTelegram(m.Chat.ID, "BBTMV-noRestrict - 'Butų NE TIK Be Tarpininkavimo Mokesčio Vilniuje' is a project intended to help find flats for a rent in Vilnius, Lithuania. All you have to do is to set config using /config command and wait until bot sends you notifications.\n\n**Fun fact** - if you are couple and looking for a flat, then create group chat and add this bot into that group - enable settings and bot will send notifications to the same chat. :)")
 }
 
 func handleCommandEnable(m *telebot.Message) {
@@ -52,9 +52,9 @@ func handleCommandDisable(m *telebot.Message) {
 	sendTelegram(m.Chat.ID, "Notifications disabled!")
 }
 
-var reConfigCommand = regexp.MustCompile(`^\/config (\d{1,5}) (\d{1,5}) (\d{1,2}) (\d{1,2}) (\d{4})$`)
+var reConfigCommand = regexp.MustCompile(`^/config (\d{1,5}) (\d{1,5}) (\d{1,2}) (\d{1,2}) (\d{4}) (\d{1,3}) (yes|no)$`)
 
-const configText = "Use this format:\n\n```\n/config <price_from> <price_to> <rooms_from> <rooms_to> <year_from>\n```\nExample:\n```\n/config 200 330 1 2 2000\n```"
+const configText = "Use this format:\n\n```\n/config <price_from> <price_to> <rooms_from> <rooms_to> <year_from> <min_flor> <show with fee?(yes/no)>\n```\nExample:\n```\n/config 200 330 1 2 2000 2 yes\n```"
 
 const configErrorText = "Wrong input! " + configText
 
@@ -66,7 +66,7 @@ func handleCommandConfig(m *telebot.Message) {
 
 	// Check if default
 	if msg == "/config" {
-		sendTelegram(m.Chat.ID, configText+"\n\n"+activeSettings(m.Chat.ID))
+		sendTelegram(m.Chat.ID, configText+"\n"+activeSettings(m.Chat.ID))
 		return
 	}
 
@@ -82,35 +82,45 @@ func handleCommandConfig(m *telebot.Message) {
 	roomsFrom, _ := strconv.Atoi(match[3])
 	roomsTo, _ := strconv.Atoi(match[4])
 	yearFrom, _ := strconv.Atoi(match[5])
+	minFloor, _ := strconv.Atoi(match[6])
+	showWithFees := strings.ToLower(match[7]) == "yes"
 
 	// Values check
 	priceCorrect := priceFrom >= 0 || priceTo <= 100000 && priceTo >= priceFrom
 	roomsCorrect := roomsFrom >= 0 || roomsTo <= 100 && roomsTo >= roomsFrom
 	yearCorrect := yearFrom <= time.Now().Year()
+	minFloorCorrect := minFloor >= 0 && minFloor <= 100
 
-	if !(priceCorrect && roomsCorrect && yearCorrect) {
+	if !(priceCorrect && roomsCorrect && yearCorrect && minFloorCorrect) {
 		sendTelegram(m.Chat.ID, configErrorText)
 		return
 	}
 
 	user := &database.User{
-		TelegramID: m.Chat.ID,
-		Enabled:    true,
-		PriceFrom:  priceFrom,
-		PriceTo:    priceTo,
-		RoomsFrom:  roomsFrom,
-		RoomsTo:    roomsTo,
-		YearFrom:   yearFrom,
+		TelegramID:   m.Chat.ID,
+		Enabled:      true,
+		PriceFrom:    priceFrom,
+		PriceTo:      priceTo,
+		RoomsFrom:    roomsFrom,
+		RoomsTo:      roomsTo,
+		YearFrom:     yearFrom,
+		MinFloor:     minFloor,
+		ShowWithFees: showWithFees,
 	}
 	db.UpdateUser(user)
 	sendTelegram(m.Chat.ID, "Config updated!\n\n"+activeSettings(m.Chat.ID))
 }
 
 const userSettingsTemplate = `*Your active settings:*
-» *Notifications:* %s
-» *Price:* %d-%d€
-» *Rooms:* %d-%d
-» *Year from:* %d`
+» *Notifications:* %[1]s
+» *Price:* %[2]d-%[3]d€
+» *Rooms:* %[4]d-%[5]d
+» *From construction year:* %[6]d
+» *Min floor:* %[7]d
+» *Show with extra fees:* %[8]s
+
+Current config:
+` + "`/config %[2]d %[3]d %[4]d %[5]d %[6]d %[7]d %[8]s`"
 
 func activeSettings(telegramID int64) string {
 	u := db.GetUser(telegramID)
@@ -118,6 +128,10 @@ func activeSettings(telegramID int64) string {
 	status := "Disabled"
 	if u.Enabled {
 		status = "Enabled"
+	}
+	showWithFee := "yes"
+	if !u.ShowWithFees {
+		showWithFee = "no"
 	}
 
 	msg := fmt.Sprintf(
@@ -128,7 +142,10 @@ func activeSettings(telegramID int64) string {
 		u.RoomsFrom,
 		u.RoomsTo,
 		u.YearFrom,
+		u.MinFloor,
+		showWithFee,
 	)
+
 	return msg
 }
 
@@ -142,7 +159,7 @@ func sendTelegram(chatID int64, msg string) {
 	startTime := time.Now()
 	tb.Send(&telebot.Chat{ID: chatID}, msg, &telebot.SendOptions{
 		ParseMode:             "Markdown",
-		DisableWebPagePreview: true,
+		DisableWebPagePreview: false,
 	})
 	elapsedTime = time.Since(startTime)
 
