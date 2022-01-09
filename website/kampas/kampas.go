@@ -51,7 +51,7 @@ func (obj *Kampas) Retrieve(db *database.Database) []*website.Post {
 		p.Link = fmt.Sprintf("https://www.kampas.lt/skelbimai/%d", v.ID) // https://www.kampas.lt/skelbimai/504506
 
 		if db.InDatabase(p.Link) {
-			return posts
+			continue
 		}
 
 		// Extract heating
