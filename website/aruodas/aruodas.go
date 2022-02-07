@@ -23,9 +23,9 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 	}
 	p.Link = "https://aruodas.lt/" + strings.ReplaceAll(upstreamID, "loadObject", "") // https://aruodas.lt/4-919937
 
-	//if db.InDatabase(p.Link) {
-	//	return
-	//}
+	if db.InDatabase(p.Link) {
+		return
+	}
 
 	chromeContext, err := website.CreateChromeContext(p.Link)
 	if err != nil {
