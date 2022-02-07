@@ -3,10 +3,11 @@ package aruodas
 import (
 	"bbtmvbot/database"
 	"bbtmvbot/website"
-	"github.com/chromedp/cdproto/cdp"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/chromedp/cdproto/cdp"
 )
 
 type Aruodas struct{}
@@ -99,11 +100,13 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 	}
 
 	// Extract house number
+	p.District = splitAddress[1]
+	p.Street = splitAddress[2]
 	if houseNumberIndex != -1 {
 		var houseNumber = dlList[houseNumberIndex].Value
-		p.Address = website.CompileAddressWithStreet(splitAddress[1], splitAddress[2], houseNumber)
+		p.HouseNumber = houseNumber
 	} else {
-		p.Address = website.CompileAddress(splitAddress[1], splitAddress[2])
+		p.HouseNumber = ""
 	}
 
 	// Extract heating:

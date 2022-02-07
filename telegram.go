@@ -18,6 +18,7 @@ func initTelegramHandlers() {
 	tb.Handle("/enable", handleCommandEnable)
 	tb.Handle("/disable", handleCommandDisable)
 	tb.Handle("/config", handleCommandConfig)
+	configureDistricts(tb)
 }
 
 func handleCommandInfo(m *telebot.Message) {
@@ -118,6 +119,7 @@ const userSettingsTemplate = `*Your active settings:*
 » *From construction year:* %[6]d
 » *Min floor:* %[7]d
 » *Show with extra fees:* %[8]s
+» *Filter by district:* %[9]s
 
 Current config:
 ` + "`/config %[2]d %[3]d %[4]d %[5]d %[6]d %[7]d %[8]s`"
@@ -133,6 +135,10 @@ func activeSettings(telegramID int64) string {
 	if !u.ShowWithFees {
 		showWithFee = "no"
 	}
+	filterByDistrict := "yes"
+	if !u.FilterByDistrict {
+		showWithFee = "no"
+	}
 
 	msg := fmt.Sprintf(
 		userSettingsTemplate,
@@ -144,9 +150,146 @@ func activeSettings(telegramID int64) string {
 		u.YearFrom,
 		u.MinFloor,
 		showWithFee,
+		filterByDistrict,
 	)
 
 	return msg
+}
+
+func configureDistricts(bot *telebot.Bot) {
+	tb.Handle("/districts", showInitialDistricts)
+}
+
+func showInitialDistricts(m *telebot.Message) {
+	user := db.GetUser(m.Chat.ID)
+	var message string
+	var content *telebot.ReplyMarkup
+
+	if !user.FilterByDistrict {
+		message = "There is a possibility to filter listings by district. Listings without any district will always be shown. Please note that some sites have differet district classifications or names."
+		content = showTurnedOffPage(user)
+	} else {
+		message = "Please select your wanted districts. If none are selected all listings will be shown. Listings without any district will always be shown. Please note that some sites have differet district classifications or names."
+		content = showPagedDistricts(m, 0, user)
+	}
+
+	tb.Send(m.Sender, message, content)
+}
+
+func min(a int, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func showTurnedOffPage(user *database.User) *telebot.ReplyMarkup {
+	var (
+		selector  = &telebot.ReplyMarkup{}
+		btnTurnOn = selector.Data("✅ Turn on", "on")
+	)
+	selector.Inline(
+		selector.Row(btnTurnOn),
+	)
+	tb.Handle(&btnTurnOn, func(c *telebot.Callback) {
+		db.ToggleFilteringDistricts(user.TelegramID, true)
+		tb.Edit(c.Message, showPagedDistricts(c.Message, 0, user))
+		tb.Respond(c, &telebot.CallbackResponse{})
+	})
+	return selector
+}
+
+func showPagedDistricts(m *telebot.Message, page int, user *database.User) *telebot.ReplyMarkup {
+	districts := db.GetAllDistrictsForUser(user.TelegramID)
+	pageSize := 6 // TODO multi row selection
+	pageCount := len(districts) / pageSize
+	nextPage := min(page+1, pageCount)
+	prevPage := max(page-1, 0)
+
+	var (
+		selector   = &telebot.ReplyMarkup{}
+		btnReset   = selector.Data("🔄", "reset")
+		btnPrev    = selector.Data("⬅", "prev", strconv.Itoa(prevPage))
+		btnNext    = selector.Data("➡", "next", strconv.Itoa(nextPage))
+		btnTurnOff = selector.Data("❌", "off")
+	)
+
+	from_i := page * pageSize
+	to_i := min(from_i+pageSize, len(districts))
+	var btns []telebot.Btn
+	for i := from_i; i < to_i; i++ {
+		id := strconv.FormatInt(districts[i].Id, 10)
+		displayName := districts[i].Name
+		if districts[i].Enabled {
+			displayName = "✅" + displayName
+		}
+		btns = append(btns, selector.Data(displayName, id, id))
+	}
+
+	var row1 = selector.Row(btns[:min(3, len(btns))]...)
+	var row2 telebot.Row
+	if len(btns) > 3 {
+		row2 = selector.Row(btns[3:]...)
+	}
+
+	selector.Inline(
+		row1,
+		row2,
+		selector.Row(btnPrev, btnNext, btnReset, btnTurnOff),
+	)
+
+	for _, element := range btns {
+		// fmt.Println(index, "=>", element)
+		tb.Handle(&element, func(c *telebot.Callback) {
+			// Always respond!
+			// fmt.Printf("Atradimui: %s \n", c.Data)
+			id, err := strconv.Atoi(c.Data)
+			if err != nil {
+				tb.Respond(c, &telebot.CallbackResponse{ShowAlert: true, Text: "Error while changing pages"})
+				return
+			}
+			added := db.ToggleDistrictForUser(id, user.TelegramID)
+			tb.Edit(c.Message, showPagedDistricts(c.Message, page, user))
+			if added {
+				tb.Respond(c, &telebot.CallbackResponse{ShowAlert: false, Text: "Added to list"})
+			} else {
+				tb.Respond(c, &telebot.CallbackResponse{ShowAlert: false, Text: "Removed from list"})
+			}
+		})
+	}
+
+	tb.Handle(&btnPrev, changePage)
+	tb.Handle(&btnNext, changePage)
+	tb.Handle(&btnReset, func(c *telebot.Callback) {
+		db.ClearDistricts(user.TelegramID)
+		tb.Edit(c.Message, showPagedDistricts(c.Message, 0, user))
+		tb.Respond(c, &telebot.CallbackResponse{ShowAlert: false, Text: "List cleared"})
+	})
+	tb.Handle(&btnTurnOff, func(c *telebot.Callback) {
+		db.ToggleFilteringDistricts(user.TelegramID, false)
+		tb.Edit(c.Message, showTurnedOffPage(user))
+		tb.Respond(c, &telebot.CallbackResponse{})
+	})
+
+	return selector
+}
+
+func changePage(c *telebot.Callback) {
+	user := db.GetUser(c.Message.Chat.ID)
+	wantedPage, e := strconv.Atoi(c.Data)
+	if e != nil {
+		tb.Respond(c, &telebot.CallbackResponse{ShowAlert: true, Text: "Error while changing pages"})
+		return
+	}
+	tb.Edit(c.Message, showPagedDistricts(c.Message, wantedPage, user))
+	tb.Respond(c, &telebot.CallbackResponse{ShowAlert: false})
 }
 
 var telegramMux sync.Mutex

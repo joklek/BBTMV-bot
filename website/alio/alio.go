@@ -58,10 +58,18 @@ func (obj *Alio) Retrieve(db *database.Database) []*website.Post {
 		p.Description = postDoc.Find("#adv_description_b > .a_line_val").Text()
 
 		// Extract address:
-		el := postDoc.Find(".data_moreinfo_b:contains(\"Adresas\")")
-		if el.Length() != 0 {
-			p.Address = el.Find(".a_line_val").Text()
+		el := postDoc.Find("div#path > .path_i > a > span")
+		if el.Length() > 4 {
+			el.Each(func(i int, selection *goquery.Selection) {
+				if i == 4 {
+					p.District = selection.Text()
+				}
+				if i == 5 {
+					p.Street = selection.Text()
+				}
+			})
 		}
+		p.HouseNumber = ""
 
 		// Extract heating:
 		el = postDoc.Find(".data_moreinfo_b:contains(\"Šildymas\")")

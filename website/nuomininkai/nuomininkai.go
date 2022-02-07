@@ -67,9 +67,9 @@ func (obj *Nuomininkai) Retrieve(db *database.Database) []*website.Post {
 		detailsElement := postDoc.Find("#description > table.table-details")
 		addrState := detailsElement.Find("td.table-details-name:contains(\"Mikrorajonas\")").Next().Text()
 		addrStreet := detailsElement.Find("td.table-details-name:contains(\"Adresas\")").Next().Text()
-		addrState = strings.TrimSpace(addrState)
-		addrStreet = strings.TrimSpace(addrStreet)
-		p.Address = website.CompileAddress(addrState, addrStreet)
+		p.District = addrState
+		p.Street = addrStreet
+		p.HouseNumber = ""
 
 		// Extract heating:
 		// Not possible

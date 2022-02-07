@@ -58,11 +58,10 @@ func (obj *Rinka) Retrieve(db *database.Database) []*website.Post {
 		var tmp string
 
 		// Extract phone:
+		p.Phone = ""
 		tmp, exists = postDoc.Find("div.messageBlock.hidden-xs.hidden-sm button").Attr("data-number")
 		if exists {
 			p.Phone = tmp
-		} else {
-			p.Phone = ""
 		}
 
 		// Extract description:
@@ -71,9 +70,9 @@ func (obj *Rinka) Retrieve(db *database.Database) []*website.Post {
 		// Extract address:
 		addrState := detailsElement.Find("dt:contains(\"Mikrorajonas / Gyvenvietė:\")").Next().Text()
 		addrStreet := detailsElement.Find("dt:contains(\"Gatvė:\")").Next().Text()
-		addrState = strings.TrimSpace(addrState)
-		addrStreet = strings.TrimSpace(addrStreet)
-		p.Address = website.CompileAddress(addrState, addrStreet)
+		p.District = addrState
+		p.Street = addrStreet
+		p.HouseNumber = ""
 
 		// Extract heating:
 		p.Heating = detailsElement.Find("dt:contains(\"Šildymas:\")").Next().Text()

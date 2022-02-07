@@ -53,19 +53,15 @@ func (obj *Skelbiu) Retrieve(db *database.Database) []*website.Post {
 		var tmp string
 
 		// Extract phone:
-		p.Phone = postDoc.Find("div.phone-button > div.primary").Text()
+		p.Phone = ""
 
 		// Extract description:
 		p.Description = postDoc.Find("div[itemprop='description']").Text()
 
 		// Extract address:
-		addrState := postDoc.Find(".detail > .title:contains('Mikrorajonas:')").Next().Text()
-		addrStreet := postDoc.Find(".detail > .title:contains('Gatvė:')").Next().Text()
-		addrHouseNum := postDoc.Find(".detail > .title:contains('Namo numeris:')").Next().Text()
-		addrState = strings.TrimSpace(addrState)
-		addrStreet = strings.TrimSpace(addrStreet)
-		addrHouseNum = strings.TrimSpace(addrHouseNum)
-		p.Address = website.CompileAddressWithStreet(addrState, addrStreet, addrHouseNum)
+		p.District = postDoc.Find(".detail > .title:contains('Mikrorajonas:')").Next().Text()
+		p.Street = postDoc.Find(".detail > .title:contains('Gatvė:')").Next().Text()
+		p.HouseNumber = postDoc.Find(".detail > .title:contains('Namo numeris:')").Next().Text()
 
 		// Extract heating:
 		p.Heating = postDoc.Find(".detail > .title:contains('Šildymas:')").Next().Text()
@@ -75,7 +71,7 @@ func (obj *Skelbiu) Retrieve(db *database.Database) []*website.Post {
 		p.Floor, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Floor number from 'skelbiu' post")
-			return
+			p.Floor = 0
 		}
 
 		// Extract floor total:
@@ -83,7 +79,7 @@ func (obj *Skelbiu) Retrieve(db *database.Database) []*website.Post {
 		p.FloorTotal, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract FloorTotal number from 'skelbiu' post")
-			return
+			p.FloorTotal = 0
 		}
 
 		// Extract area:
@@ -128,7 +124,7 @@ func (obj *Skelbiu) Retrieve(db *database.Database) []*website.Post {
 		p.Year, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Year number from 'skelbiu' post")
-			return
+			p.Year = 0
 		}
 
 		p.TrimFields()

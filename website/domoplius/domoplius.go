@@ -66,18 +66,17 @@ func (obj *Domoplius) Retrieve(db *database.Database) []*website.Post {
 		p.Description = postDoc.Find("div.container > div.group-comments").Text()
 
 		// Extract address:
-		tmp = ""
-		postDoc.Find(".breadcrumb-item > a > span[itemprop=name]").Each(func(i int, selection *goquery.Selection) {
-			if i != 0 {
-				tmp += ", "
+		addressBreadcrumbs := postDoc.Find(".breadcrumb-item > a > span[itemprop=name]")
+
+		addressBreadcrumbs.Each(func(i int, selection *goquery.Selection) {
+			if i == 1 {
+				p.District = selection.Text()
 			}
-			tmp += selection.Text()
+			if i == 2 {
+				p.Street = selection.Text()
+			}
 		})
-		if tmp != "" {
-			if tmp != "" {
-				p.Address = tmp
-			}
-		}
+		p.HouseNumber = ""
 
 		// Extract heating:
 		el := postDoc.Find(".view-field-title:contains(\"Šildymas:\")")

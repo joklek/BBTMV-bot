@@ -51,7 +51,7 @@ func (obj *Kampas) Retrieve(db *database.Database) []*website.Post {
 		p.Link = fmt.Sprintf("https://www.kampas.lt/skelbimai/%d", v.ID) // https://www.kampas.lt/skelbimai/504506
 
 		if db.InDatabase(p.Link) {
-			return posts
+			continue
 		}
 
 		// Extract heating
@@ -67,7 +67,9 @@ func (obj *Kampas) Retrieve(db *database.Database) []*website.Post {
 
 		//p.Phone = "" // Impossible
 		p.Description = strings.ReplaceAll(v.Description, "<br/>", "\n")
-		p.Address = v.Title
+		p.District = strings.Split(v.Title, ", ")[1]
+		p.Street = strings.Split(v.Title, ", ")[2]
+		p.HouseNumber = ""
 		p.Floor = v.Objectfloor
 		p.FloorTotal = v.Totalfloors
 		p.Area = v.Objectarea

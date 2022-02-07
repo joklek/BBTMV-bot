@@ -11,7 +11,9 @@ type Post struct {
 	Link        string
 	Phone       string
 	Description string
-	Address     string
+	District    string
+	Street      string
+	HouseNumber string
 	Heating     string
 	Floor       int
 	FloorTotal  int
@@ -54,6 +56,20 @@ var lithuanianReplacer = strings.NewReplacer(
 	"y", "i", // Replace y with i, because some people are bad at writting
 )
 
+func (p *Post) Address() (address string) {
+	address = "Vilnius"
+	if p.District != "" {
+		address += ", " + p.District
+	}
+	if p.Street != "" {
+		address += ", " + p.Street
+		if p.HouseNumber != "" {
+			address += " " + p.HouseNumber
+		}
+	}
+	return
+}
+
 func (p *Post) IsWithFee() bool {
 	processedDescription := strings.ToLower(p.Description)
 	processedDescription = lithuanianReplacer.Replace(processedDescription)
@@ -88,8 +104,8 @@ func (p *Post) FormatTelegramMessage(IDInDatabase int64) string {
 		fmt.Fprintf(&sb, "» *Phone number:* [%s](tel:%s)\n", p.Phone, p.Phone)
 	}
 
-	if p.Address != "" {
-		fmt.Fprintf(&sb, "» *Address:* [%s](https://maps.google.com/?q=%s)\n", p.Address, url.QueryEscape(p.Address))
+	if p.District != "" || p.Street != "" {
+		fmt.Fprintf(&sb, "» *Address:* [%s](https://maps.google.com/?q=%s)\n", p.Address(), url.QueryEscape(p.Address()))
 	}
 
 	if p.Price != 0 && p.Area != 0 {
@@ -128,7 +144,9 @@ func (p *Post) FormatTelegramMessage(IDInDatabase int64) string {
 }
 
 func (p *Post) TrimFields() {
-	p.Address = strings.TrimSpace(p.Address)
+	p.District = strings.TrimSpace(p.District)
+	p.Street = strings.TrimSpace(p.Street)
+	p.HouseNumber = strings.TrimSpace(p.HouseNumber)
 	p.Heating = strings.TrimSpace(p.Heating)
 	p.Phone = cleanupPhoneNumber(p.Phone)
 }
