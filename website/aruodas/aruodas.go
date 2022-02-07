@@ -184,6 +184,8 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		}
 	}
 
+	chromeContext.Done()
+
 	p.TrimFields()
 	posts = append(posts, p)
 }

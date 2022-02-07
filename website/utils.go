@@ -83,6 +83,8 @@ func GetResponseChrome(link string, selector string) ([]*cdp.Node, error) {
 		chromedp.Nodes(selector, &nodes, chromedp.ByQueryAll),
 	)
 
+	ctx.Done()
+
 	return nodes, err
 }
 
