@@ -69,7 +69,7 @@ func GetResponseChrome(link string, selector string) ([]*cdp.Node, error) {
 	defer cancel()
 
 	// create a timeout
-	ctx, cancel = context.WithTimeout(ctx, 120*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
 	// navigate to a page, wait for an element, click
