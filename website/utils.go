@@ -29,7 +29,7 @@ func CreateChromeContext(link string) (context.Context, error) {
 	)
 
 	// create a timeout
-	ctx, _ = context.WithTimeout(ctx, 60*time.Minute)
+	ctx, _ = context.WithTimeout(ctx, 60*time.Second)
 
 	var err = chromedp.Run(ctx,
 		emulation.SetUserAgentOverride("WebScraper 1.0"),
