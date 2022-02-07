@@ -67,8 +67,8 @@ func Start(c *config.Config, dbPath *string) {
 		}
 	}()
 
-	s.Every("3m").Do(refreshWebsites) // Retrieve new posts, send to users // TODO randomize
-	s.Every("24h").Do(cleanup)        // Cleanup (remove posts that are not seen in the last 30 days)
+	// s.Every("3m").Do(refreshWebsites) // Retrieve new posts, send to users // TODO randomize
+	s.Every("24h").Do(cleanup) // Cleanup (remove posts that are not seen in the last 30 days)
 
 	// Start cronjob and block execution
 	s.StartBlocking()
