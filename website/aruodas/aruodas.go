@@ -53,13 +53,13 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 	// Extract description:
 	p.Description, err = website.ScrapeExistingText(chromeContext, "#collapsedTextBlock > #collapsedText")
 	if err != nil {
-		return
+		log.Println("failed to extract description from 'aruodas' post")
 	}
 
 	// Extract address:
 	temp, err := website.ScrapeExistingText(chromeContext, ".main-content > .obj-cont > h1")
 	if err != nil {
-		return
+		log.Println("failed to extract address from 'aruodas' post")
 	}
 
 	splitAddress := strings.Split(temp, ",")
@@ -120,7 +120,6 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		p.Floor, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Floor number from 'aruodas' post")
-			return
 		}
 	}
 
@@ -130,7 +129,6 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		p.FloorTotal, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract FloorTotal number from 'aruodas' post")
-			return
 		}
 	}
 
@@ -157,7 +155,6 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		p.Price, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Price number from 'aruodas' post")
-			return
 		}
 	}
 
@@ -167,7 +164,6 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		p.Rooms, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Rooms number from 'aruodas' post")
-			return
 		}
 	}
 
@@ -180,7 +176,6 @@ func processItem(node *cdp.Node, posts []*website.Post, db *database.Database) {
 		p.Year, err = strconv.Atoi(tmp)
 		if err != nil {
 			log.Println("failed to extract Year number from 'aruodas' post")
-			return
 		}
 	}
 
